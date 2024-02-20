@@ -38,6 +38,7 @@ defmodule Edgehog.Astarte do
     BatteryStatus,
     CellularConnection,
     DeviceStatus,
+    ForwarderSession,
     Geolocation,
     HardwareInfo,
     LedBehavior,
@@ -115,6 +116,11 @@ defmodule Edgehog.Astarte do
                               :edgehog,
                               :astarte_network_interface_module,
                               NetworkInterface
+                            )
+  @forwarder_session_module Application.compile_env(
+                              :edgehog,
+                              :astarte_forwarder_session_module,
+                              ForwarderSession
                             )
 
   @interfaces_module Application.compile_env(:edgehog, :astarte_interfaces_module, Interfaces)
@@ -598,6 +604,40 @@ defmodule Edgehog.Astarte do
 
   def send_led_behavior(%AppEngine{} = client, device_id, behavior) do
     @led_behavior_module.post(client, device_id, behavior)
+  end
+
+  defp list_forwarder_sessions(%AppEngine{} = client, device_id) do
+    @forwarder_session_module.list_sessions(client, device_id)
+  end
+
+  def fetch_forwarder_session(%AppEngine{} = client, device_id, session_token) do
+    @forwarder_session_module.fetch_session(client, device_id, session_token)
+  end
+
+  defp request_forwarder_session(%AppEngine{} = client, device_id, session_token) do
+    @forwarder_session_module.request_session(client, device_id, session_token)
+  end
+
+  defp fetch_available_forwarder_session(%AppEngine{} = client, device_id) do
+    with {:ok, forwarder_sessions} <- list_forwarder_sessions(client, device_id) do
+      connected_session = Enum.find(forwarder_sessions, &(&1.status == :connected))
+      connecting_session = Enum.find(forwarder_sessions, &(&1.status == :connecting))
+
+      cond do
+        connected_session != nil -> {:ok, connected_session}
+        connecting_session != nil -> {:ok, connecting_session}
+        true -> {:error, :forwarder_session_not_found}
+      end
+    end
+  end
+
+  def fetch_or_request_available_forwarder_session(%AppEngine{} = client, device_id) do
+    with {:error, :forwarder_session_not_found} <-
+           fetch_available_forwarder_session(client, device_id) do
+      session_token = Ecto.UUID.generate()
+
+      request_forwarder_session(client, device_id, session_token)
+    end
   end
 
   def fetch_interface(%RealmManagement{} = client, interface_name, interface_major) do
