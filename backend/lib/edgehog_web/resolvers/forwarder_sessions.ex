@@ -38,6 +38,26 @@ defmodule EdgehogWeb.Resolvers.ForwarderSessions do
     end
   end
 
+  @doc """
+  Requests a forwarder session for the specified device ID.
+  """
+  def request_forwarder_session(%{device_id: device_id}, _resolution) do
+    device =
+      device_id
+      |> Devices.get_device!()
+      |> Devices.preload_astarte_resources_for_device()
+
+    with :ok <- validate_device_connected(device),
+         {:ok, appengine_client} <- Devices.appengine_client_from_device(device),
+         {:ok, forwarder_session} <-
+           Astarte.fetch_or_request_available_forwarder_session(
+             appengine_client,
+             device.device_id
+           ) do
+      {:ok, %{forwarder_session: forwarder_session}}
+    end
+  end
+
   defp validate_device_connected(%Device{online: true}), do: :ok
   defp validate_device_connected(%Device{online: false}), do: {:error, :device_disconnected}
 end
