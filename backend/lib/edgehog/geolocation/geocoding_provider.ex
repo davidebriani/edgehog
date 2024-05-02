@@ -1,7 +1,7 @@
 #
 # This file is part of Edgehog.
 #
-# Copyright 2021-2022 SECO Mind Srl
+# Copyright 2021-2024 SECO Mind Srl
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,8 +20,7 @@
 
 defmodule Edgehog.Geolocation.GeocodingProvider do
   alias Edgehog.Geolocation.Coordinates
+  alias Edgehog.Geolocation.Location
 
-  @type address :: String.t()
-
-  @callback reverse_geocode(Coordinates.t()) :: {:ok, address} | {:error, term}
+  @callback reverse_geocode(Coordinates.t()) :: {:ok, Location.t()} | {:error, term}
 end

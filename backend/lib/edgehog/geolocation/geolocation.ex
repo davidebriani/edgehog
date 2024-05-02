@@ -23,50 +23,20 @@ defmodule Edgehog.Geolocation do
   The Geolocation context.
   """
 
-  @enforce_keys [:latitude, :longitude, :timestamp]
-  defstruct [:latitude, :longitude, :accuracy, :timestamp, :address]
-
   alias Edgehog.Config
-  alias Edgehog.Devices
   alias Edgehog.Devices.Device
-  alias Edgehog.Geolocation
   alias Edgehog.Geolocation.Coordinates
 
-  @type t() :: %__MODULE__{
-          latitude: float,
-          longitude: float,
-          accuracy: number | nil,
-          address: String.t() | nil,
-          timestamp: DateTime.t()
-        }
-
-  def fetch_location(%Device{} = device) do
+  def geolocate(%Device{} = device) do
     geolocation_providers = Config.geolocation_providers!()
+
+    geolocate_with(geolocation_providers, device)
+  end
+
+  def reverse_geocode(%Coordinates{} = coordinates) do
     geocoding_providers = Config.geocoding_providers!()
-    device = Devices.preload_astarte_resources_for_device(device)
 
-    with {:ok, position} <- geolocate_with(geolocation_providers, device) do
-      coordinates = %Coordinates{
-        latitude: position.latitude,
-        longitude: position.longitude
-      }
-
-      address =
-        case reverse_geocode_with(geocoding_providers, coordinates) do
-          {:ok, address} -> address
-          _ -> nil
-        end
-
-      location = %Geolocation{
-        latitude: position.latitude,
-        longitude: position.longitude,
-        accuracy: position.accuracy,
-        timestamp: position.timestamp,
-        address: address
-      }
-
-      {:ok, location}
-    end
+    reverse_geocode_with(geocoding_providers, coordinates)
   end
 
   defp geolocate_with([], %Device{} = _device) do

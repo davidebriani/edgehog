@@ -20,12 +20,25 @@
 
 defmodule Edgehog.Geolocation.Position do
   @type t :: %__MODULE__{
-          latitude: float,
-          longitude: float,
-          accuracy: number | nil,
+          latitude: float(),
+          longitude: float(),
+          accuracy: float() | nil,
+          altitude: float() | nil,
+          altitude_accuracy: float() | nil,
+          heading: float() | nil,
+          speed: float() | nil,
           timestamp: DateTime.t()
         }
 
-  @enforce_keys [:latitude, :longitude, :accuracy, :timestamp]
+  @enforce_keys [
+    :latitude,
+    :longitude,
+    :accuracy,
+    :altitude,
+    :altitude_accuracy,
+    :heading,
+    :speed,
+    :timestamp
+  ]
   defstruct @enforce_keys
 end

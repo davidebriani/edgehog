@@ -21,7 +21,6 @@
 defmodule Edgehog.Geolocation.Providers.IPBase do
   @behaviour Edgehog.Geolocation.GeolocationProvider
 
-  alias Edgehog.Astarte
   alias Edgehog.Config
   alias Edgehog.Devices.Device
   alias Edgehog.Geolocation.Position
@@ -32,11 +31,15 @@ defmodule Edgehog.Geolocation.Providers.IPBase do
   plug Tesla.Middleware.JSON
 
   @impl Edgehog.Geolocation.GeolocationProvider
-  def geolocate(%Device{realm: realm} = device) when is_struct(realm, Astarte.Realm) do
-    with {:ok, device_status} <- Astarte.get_device_status(realm, device.device_id),
-         {:ok, coordinates} <- geolocate_ip(device_status.last_seen_ip) do
+  def geolocate(%Device{} = device) do
+    with {:ok, device} <- Ash.load(device, :tenant),
+         {:ok, device} <- Ash.load(device, [:device_status], tenant: device.tenant),
+         {:ok, coordinates} <- geolocate_ip(device.device_status.last_seen_ip) do
+      %{last_connection: last_connection, last_disconnection: last_disconnection} =
+        device.device_status
+
       device_last_seen =
-        [device_status.last_connection, device_status.last_disconnection]
+        [last_connection, last_disconnection]
         |> Enum.reject(&is_nil/1)
         |> Enum.sort({:desc, DateTime})
         |> List.first()
@@ -47,6 +50,10 @@ defmodule Edgehog.Geolocation.Providers.IPBase do
         latitude: coordinates.latitude,
         longitude: coordinates.longitude,
         accuracy: coordinates.accuracy,
+        altitude: nil,
+        altitude_accuracy: nil,
+        heading: nil,
+        speed: nil,
         timestamp: timestamp
       }
 
