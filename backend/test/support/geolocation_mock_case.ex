@@ -1,7 +1,7 @@
 #
 # This file is part of Edgehog.
 #
-# Copyright 2021 SECO Mind Srl
+# Copyright 2021-2024 SECO Mind Srl
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -48,6 +48,14 @@ defmodule Edgehog.GeolocationMockCase do
   setup :verify_on_exit!
 
   setup do
+    Mox.defmock(Edgehog.Geolocation.GeolocationProviderMock,
+      for: Edgehog.Geolocation.GeolocationProvider
+    )
+
+    Mox.defmock(Edgehog.Geolocation.GeocodingProviderMock,
+      for: Edgehog.Geolocation.GeocodingProvider
+    )
+
     Mox.stub_with(
       Edgehog.Geolocation.GeolocationProviderMock,
       Edgehog.Mocks.Geolocation.GeolocationProvider

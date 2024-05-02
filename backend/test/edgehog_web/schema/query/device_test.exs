@@ -20,6 +20,7 @@
 
 defmodule EdgehogWeb.Schema.Query.DeviceTest do
   use EdgehogWeb.GraphqlCase, async: true
+  use Edgehog.GeolocationMockCase
 
   @moduletag :ported_to_ash
 
@@ -534,6 +535,126 @@ defmodule EdgehogWeb.Schema.Query.DeviceTest do
       assert %{"deviceGroups" => []} =
                device_query(document: document, tenant: tenant, id: id)
                |> extract_result!()
+    end
+  end
+
+  describe "device location" do
+    alias Edgehog.Geolocation.GeolocationProviderMock
+    alias Edgehog.Geolocation.GeocodingProviderMock
+    alias Edgehog.Geolocation.Position
+
+    setup %{tenant: tenant} do
+      device = device_fixture(tenant: tenant)
+      id = AshGraphql.Resource.encode_relay_id(device)
+
+      document = """
+      query ($id: ID!) {
+        device(id: $id) {
+          location {
+            latitude
+            longitude
+            accuracy
+            altitude
+            altitudeAccuracy
+            heading
+            speed
+            timestamp
+            address
+          }
+        }
+      }
+      """
+
+      %{device: device, tenant: tenant, id: id, document: document}
+    end
+
+    test "returns coordinates, timestamp, and address", ctx do
+      %{tenant: tenant, id: id, document: document} = ctx
+
+      GeolocationProviderMock
+      |> expect(:geolocate, fn _device ->
+        {:ok,
+         %Position{
+           latitude: 45.4095285,
+           longitude: 11.8788231,
+           accuracy: 12,
+           altitude: nil,
+           altitude_accuracy: nil,
+           heading: nil,
+           speed: nil,
+           timestamp: ~U[2021-11-15 11:44:57.432516Z]
+         }}
+      end)
+
+      GeocodingProviderMock
+      |> expect(:reverse_geocode, fn _coordinates ->
+        {:ok, "4 Privet Drive, Little Whinging, Surrey, UK"}
+      end)
+
+      assert %{"location" => location} =
+               device_query(document: document, tenant: tenant, id: id)
+               |> extract_result!()
+
+      %{
+        "latitude" => 45.4095285,
+        "longitude" => 11.8788231,
+        "accuracy" => 12.0,
+        "altitude" => nil,
+        "altitudeAccuracy" => nil,
+        "heading" => nil,
+        "speed" => nil,
+        "timestamp" => "2021-11-15T11:44:57.432516Z",
+        "address" => "4 Privet Drive, Little Whinging, Surrey, UK"
+      } = location
+    end
+
+    test "returns nil when it cannot geolocate the position", ctx do
+      %{tenant: tenant, id: id, document: document} = ctx
+
+      GeolocationProviderMock
+      |> expect(:geolocate, fn _device -> {:error, :position_not_found} end)
+
+      assert %{"location" => nil} =
+               device_query(document: document, tenant: tenant, id: id)
+               |> extract_result!()
+    end
+
+    test "returns the position even if it cannot reverse geocode it", ctx do
+      %{tenant: tenant, id: id, document: document} = ctx
+
+      GeolocationProviderMock
+      |> expect(:geolocate, fn _device ->
+        {:ok,
+         %Position{
+           latitude: 45.4095285,
+           longitude: 11.8788231,
+           accuracy: 12,
+           altitude: nil,
+           altitude_accuracy: nil,
+           heading: nil,
+           speed: nil,
+           timestamp: ~U[2021-11-15 11:44:57.432516Z]
+         }}
+      end)
+
+      GeocodingProviderMock
+      |> expect(:reverse_geocode, fn _coordinates -> {:error, :location_not_found} end)
+
+      assert %{"location" => location} =
+               device_query(document: document, tenant: tenant, id: id)
+               |> extract_result!()
+
+      %{
+        "latitude" => 45.4095285,
+        "longitude" => 11.8788231,
+        "accuracy" => 12.0,
+        "altitude" => nil,
+        "altitudeAccuracy" => nil,
+        "heading" => nil,
+        "speed" => nil,
+        "timestamp" => "2021-11-15T11:44:57.432516Z",
+        "address" => nil
+      } = location
     end
   end
 

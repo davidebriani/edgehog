@@ -19,37 +19,73 @@
 #
 
 defmodule Edgehog.Devices.Device.Types.DeviceLocation do
-  @enforce_keys [
-    :latitude,
-    :longitude,
-    :accuracy,
-    :altitude,
-    :altitude_accuracy,
-    :heading,
-    :speed,
-    :timestamp,
-    :address
-  ]
-  defstruct @enforce_keys
+  use Ash.Resource,
+    data_layer: :embedded,
+    extensions: [
+      AshGraphql.Resource
+    ]
 
-  @type t() :: %__MODULE__{
-          latitude: float(),
-          longitude: float(),
-          accuracy: float() | nil,
-          altitude: float() | nil,
-          altitude_accuracy: float() | nil,
-          heading: float() | nil,
-          speed: float() | nil,
-          timestamp: DateTime.t(),
-          address: String.t() | nil
-        }
+  resource do
+    description """
+    Describes the position of a device.
 
-  use Ash.Type.NewType,
-    subtype_of: :struct,
-    constraints: [instance_of: __MODULE__]
+    The field holds information about the GPS coordinates of the device as well
+    as its address, which are estimated by means of Edgehog's Geolocation
+    modules and the data published by the device.
+    """
+  end
 
-  use AshGraphql.Type
+  graphql do
+    type :device_location
+  end
 
-  @impl true
-  def graphql_type(_), do: :device_location
+  attributes do
+    attribute :latitude, :float do
+      description "The latitude coordinate."
+      public? true
+      allow_nil? false
+    end
+
+    attribute :longitude, :float do
+      description "The longitude coordinate."
+      public? true
+      allow_nil? false
+    end
+
+    attribute :accuracy, :float do
+      description "The accuracy of the measurement, in meters."
+      public? true
+    end
+
+    attribute :altitude, :float do
+      description "The altitude coordinate."
+      public? true
+    end
+
+    attribute :altitude_accuracy, :float do
+      description "The accuracy of the altitude measurement, in meters."
+      public? true
+    end
+
+    attribute :heading, :float do
+      description "The measured heading."
+      public? true
+    end
+
+    attribute :speed, :float do
+      description "The measured speed."
+      public? true
+    end
+
+    attribute :timestamp, :datetime do
+      description "The date and time at which the measurement was made."
+      public? true
+      allow_nil? false
+    end
+
+    attribute :address, :string do
+      description "The formatted address estimated for the position."
+      public? true
+    end
+  end
 end
