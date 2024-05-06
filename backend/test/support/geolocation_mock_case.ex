@@ -56,16 +56,6 @@ defmodule Edgehog.GeolocationMockCase do
       for: Edgehog.Geolocation.GeocodingProvider
     )
 
-    Mox.stub_with(
-      Edgehog.Geolocation.GeolocationProviderMock,
-      Edgehog.Mocks.Geolocation.GeolocationProvider
-    )
-
-    Mox.stub_with(
-      Edgehog.Geolocation.GeocodingProviderMock,
-      Edgehog.Mocks.Geolocation.GeocodingProvider
-    )
-
     :ok
   end
 end
