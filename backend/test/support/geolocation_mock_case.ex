@@ -48,16 +48,6 @@ defmodule Edgehog.GeolocationMockCase do
   setup :verify_on_exit!
 
   setup do
-    Mox.stub_with(
-      Edgehog.Geolocation.GeolocationProviderMock,
-      Edgehog.Mocks.Geolocation.GeolocationProvider
-    )
-
-    Mox.stub_with(
-      Edgehog.Geolocation.GeocodingProviderMock,
-      Edgehog.Mocks.Geolocation.GeocodingProvider
-    )
-
     Mox.defmock(Edgehog.Geolocation.GeolocationProviderMock,
       for: Edgehog.Geolocation.GeolocationProvider
     )
