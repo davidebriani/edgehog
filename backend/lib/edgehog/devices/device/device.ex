@@ -436,5 +436,12 @@ defmodule Edgehog.Devices.Device do
   postgres do
     table "devices"
     repo Edgehog.Repo
+
+    references do
+      reference :realm,
+        on_delete: :nothing,
+        match_with: [tenant_id: :tenant_id],
+        match_type: :full
+    end
   end
 end

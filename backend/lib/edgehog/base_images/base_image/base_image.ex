@@ -226,5 +226,12 @@ defmodule Edgehog.BaseImages.BaseImage do
   postgres do
     table "base_images"
     repo Edgehog.Repo
+
+    references do
+      reference :base_image_collection,
+        on_delete: :nothing,
+        match_with: [tenant_id: :tenant_id],
+        match_type: :full
+    end
   end
 end

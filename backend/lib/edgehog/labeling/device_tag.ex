@@ -68,8 +68,12 @@ defmodule Edgehog.Labeling.DeviceTag do
     repo Edgehog.Repo
 
     references do
-      reference :device, on_delete: :delete
-      reference :tag, on_delete: :delete
+      reference :device,
+        on_delete: :delete,
+        match_with: [tenant_id: :tenant_id],
+        match_type: :full
+
+      reference :tag, on_delete: :restrict, match_with: [tenant_id: :tenant_id], match_type: :full
     end
   end
 end
