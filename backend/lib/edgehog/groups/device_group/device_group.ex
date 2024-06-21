@@ -30,9 +30,7 @@ defmodule Edgehog.Groups.DeviceGroup do
   graphql do
     type :device_group
 
-    # TODO: add :devices as a relay-paginated relationship. Since it's a
-    # manual relationship, it needs to implement callbacks that define
-    # datalayer subqueries so Ash can compose and support the functionality.
+    paginate_relationship_with devices: :relay
   end
 
   actions do

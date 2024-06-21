@@ -601,7 +601,12 @@ defmodule EdgehogWeb.Schema.Query.DeviceTest do
       query ($id: ID!) {
         device(id: $id) {
           deviceGroups {
-            name
+            count
+            edges {
+              node {
+                name
+              }
+            }
           }
         }
       }
@@ -613,7 +618,12 @@ defmodule EdgehogWeb.Schema.Query.DeviceTest do
     test "is empty with no groups", ctx do
       %{tenant: tenant, id: id, document: document} = ctx
 
-      assert %{"deviceGroups" => []} =
+      assert %{
+               "deviceGroups" => %{
+                 "count" => 0,
+                 "edges" => []
+               }
+             } =
                device_query(document: document, tenant: tenant, id: id)
                |> extract_result!()
     end
@@ -628,7 +638,12 @@ defmodule EdgehogWeb.Schema.Query.DeviceTest do
       _matching_group =
         device_group_fixture(tenant: tenant, name: "foos", selector: ~s<"foo" in tags>)
 
-      assert %{"deviceGroups" => [%{"name" => "foos"}]} =
+      assert %{
+               "deviceGroups" => %{
+                 "count" => 0,
+                 "edges" => [%{"node" => %{"name" => "foos"}}]
+               }
+             } =
                device_query(document: document, tenant: tenant, id: id)
                |> extract_result!()
     end
@@ -643,7 +658,12 @@ defmodule EdgehogWeb.Schema.Query.DeviceTest do
       _non_matching_group =
         device_group_fixture(tenant: tenant, name: "foos", selector: ~s<"bar" in tags>)
 
-      assert %{"deviceGroups" => []} =
+      assert %{
+               "deviceGroups" => %{
+                 "count" => 0,
+                 "edges" => []
+               }
+             } =
                device_query(document: document, tenant: tenant, id: id)
                |> extract_result!()
     end

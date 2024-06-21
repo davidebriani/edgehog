@@ -70,18 +70,29 @@ defmodule EdgehogWeb.Schema.Query.DeviceGroupTest do
       query ($id: ID!) {
         deviceGroup(id: $id) {
           devices {
-            id
+            count
+            edges {
+              node {
+                id
+              }
+            }
           }
         }
       }
       """
 
-      assert %{"devices" => devices} =
+      assert %{
+               "devices" => %{
+                 "count" => 2,
+                 "edges" => edges
+               }
+             } =
                device_group_query(tenant: tenant, id: id, document: document)
                |> extract_result!()
 
-      assert length(devices) == 2
-      device_ids = Enum.map(devices, &Map.get(&1, "id"))
+      device_ids = Enum.map(edges, & &1["node"]["id"])
+
+      assert length(device_ids) == 2
 
       assert AshGraphql.Resource.encode_relay_id(foo_device) in device_ids
       assert AshGraphql.Resource.encode_relay_id(baz_device) in device_ids

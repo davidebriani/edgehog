@@ -21,6 +21,7 @@
 defmodule Edgehog.Devices.Device.ManualRelationships.DeviceGroups do
   use Ash.Resource.ManualRelationship
   require Ash.Query
+  require Ecto.Query
 
   alias Edgehog.Devices.Device
 
@@ -44,5 +45,42 @@ defmodule Edgehog.Devices.Device.ManualRelationships.DeviceGroups do
       |> Map.take(device_ids)
 
     {:ok, device_id_to_groups}
+  end
+
+  # @impl true
+  # def ash_postgres_join(query, _opts, current_binding, as_binding, :inner, destination_query) do
+  #   {:ok,
+  #    Ecto.Query.from(_ in query,
+  #      join: dest in ^destination_query,
+  #      as: ^as_binding,
+  #      on: dest.post_id == as(^current_binding).id,
+  #      on: fragment("strpos(?, ?) > 0", dest.title, as(^current_binding).title)
+  #    )}
+  # end
+
+  # @impl true
+  # def ash_postgres_join(query, _opts, current_binding, as_binding, :left, destination_query) do
+  #   {:ok,
+  #    Ecto.Query.from(_ in query,
+  #      left_join: dest in ^destination_query,
+  #      as: ^as_binding,
+  #      on: dest.post_id == as(^current_binding).id,
+  #      on: fragment("strpos(?, ?) > 0", dest.title, as(^current_binding).title)
+  #    )}
+  # end
+
+  @impl true
+  def ash_postgres_subquery(opts, current_binding, as_binding, destination_query) do
+    IO.inspect(
+      opts: opts,
+      current_binding: current_binding,
+      as_binding: as_binding,
+      destination_query: destination_query
+    )
+
+    {:ok,
+     Ecto.Query.from(_ in destination_query,
+       where: parent_as(^current_binding).device_id == as(^as_binding).selector
+     )}
   end
 end
