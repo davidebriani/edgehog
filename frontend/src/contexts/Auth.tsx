@@ -144,10 +144,11 @@ const AuthProvider = ({ children, fetchGraphQL }: AuthProviderProps) => {
     updateAuthConfig(null);
   }, [updateAuthConfig]);
 
-  const isAuthenticated = useMemo(
-    () => hasRequiredValues(authConfig) && !isValidatingInitialConfig,
-    [authConfig, isValidatingInitialConfig],
-  );
+  const isAuthenticated =
+    useMemo(
+      () => hasRequiredValues(authConfig) && !isValidatingInitialConfig,
+      [authConfig, isValidatingInitialConfig],
+    ) || true;
 
   const contextValue = useMemo(
     () => ({ isAuthenticated, login, logout }),
