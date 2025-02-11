@@ -48,6 +48,7 @@ services:
       EDGEHOG_FORWARDER_HOSTNAME: device-forwarder.${DOCKER_COMPOSE_EDGEHOG_BASE_DOMAIN}
       EDGEHOG_FORWARDER_PORT: 80
       EDGEHOG_FORWARDER_SECURE_SESSIONS: "false"
+      ADMIN_JWT_PUBLIC_KEY_PATH: /keys/admin_public.pem
     restart: on-failure
     volumes:
       - type: bind
@@ -56,6 +57,9 @@ services:
       - type: bind
         source: "${SEEDS_REALM_PRIVATE_KEY_FILE}"
         target: /keys/realm_private.pem
+      - type: bind
+        source: ./backend/priv/repo/seeds/keys/admin_public.pem
+        target: /keys/admin_public.pem
     depends_on:
       - postgresql
       - minio

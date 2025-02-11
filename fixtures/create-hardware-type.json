@@ -1,0 +1,7 @@
+{
+  "query": "mutation CreateHardwareType($input: CreateHardwareTypeInput!) {\n  createHardwareType(input: $input) {\n    result {\n      id\n      handle\n      name\n      partNumbers {\n        partNumber\n      }\n    }\n  }\n}",
+  "variables": {
+    "input": { "handle": "hw-1", "name": "HW 1", "partNumbers": "hw-1" }
+  },
+  "operationName": "CreateHardwareType"
+}
