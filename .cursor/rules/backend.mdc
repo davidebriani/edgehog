@@ -1,0 +1,113 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+## Elixir Dev Environment
+- If the host system uses Nix, ensure you setup a Nix shell with `nix develop` (or `nix-shell` if not using flakes) to have the correct version of Elixir and Erlang tooling.
+- If the host system does not use Nix, from inside the main Astarte directory install Elixir and Erlang by running `asdf plugin add erlang`, `asdf plugin add elixir`, and `asdf install`.
+
+## Language/Framework Conventions
+- Follow idiomatic Elixir style; prefer pattern matching and pipelines.
+- Never suggest macros unless the user has used them in the current file or module.
+- If modifying Phoenix controllers or LiveView handlers, ensure compatibility with Plug.Conn and assign handling.
+
+## Tooling and Quality
+- Enforce Credo style guides. Prefer readability and being explicit, avoid long functions.
+- Respect ExUnit test patterns; always use descriptive test names.
+
+## Elixir, Phoenix and Ash Usage
+
+- Write concise, idiomatic Elixir code with accurate examples.
+- When working with Phoenix and Ecto:
+    - When generating migrations, use `mix ecto.gen.migration <name>`
+    - Follow Phoenix conventions and best practices.
+    - Use plural form for context modules (e.g., "Users" for users table)
+    - Use singular form for schema modules (e.g., "User" for users table)
+    - Context files are usually inside a folder named after the resource (e.g., lib/my_app/users.ex)
+    - Schema files are usually inside a folder named after the resource (e.g., lib/my_app/users/user.ex)
+- When working with Ash resources:
+  - Unless specified, prefer using Ash DSL over hand-rolled contexts.
+  - Infer DSL usage from context.
+  - Do not suggest manual logic that duplicates Ash DSL capabilities (e.g., actions, calculations, aggregates).
+  - Always reflect on `attributes`, `relationships`, and `policies` structure when suggesting changes.
+  - Use AshGraphQL or AshJsonApi to expose resources, not manual Absinthe or controller APIs unless required.
+  - When using ash_postgres, instead of manually creating database migrations with `mix ecto.gen.migration` use Ash tooling such as `mix ash_postgres.generate_migrations`.
+- Prefer pipe-based Ecto queries over keyword-based queries
+  - For example, use `User |> where(age: 18) |> select([u], u)` over `from(u in User, where: u.age > 18, select: u)`
+- Use `dbg/1` to debug code.
+- Avoid direct string manipulation for JSON, use Jason or Plug.Conn utilities
+- Use Gettext for all user-facing strings.
+- Use Ecto.Multi for transactional operations. Ensure proper rollback semantics and avoid race conditions.
+
+## Security and Data
+- Sanitize user input in Plug pipelines.
+- Ensure no PII or secrets are logged.
+- When working with Absinthe, always validate resolvers have auth guards or use `middleware`.
+
+## Coding Patterns
+- Domain-Driven Design: Organize code around business domains, not technical layers
+- Functional Core, Imperative Shell: Pure domain logic with side effects at boundaries
+- Explicit Over Implicit: Prefer clarity over magic
+- Composition Over Inheritance: Build systems from small, focused components
+- Single Responsibility: Each module and function should do one thing well
+- Easy to Change: Design for maintainability and future change
+- Fail Fast: Detect and handle errors as early as possible
+- YAGNI: Don't build features until they're needed
+- Type Specifications: Add typespecs to all public functions
+- Data Validation: Validate data at boundaries using Ecto.Changeset even outside of database contexts
+- Result Tuples: Return tagged tuples like '{:ok, result}' or '{:error, reason}' for operations that can fail
+
+## Testing Strategies
+
+- Test Public APIs: Focus on testing public context APIs
+- Mox for Dependencies: Use Mox for mocking external dependencies
+- Property-Based Testing: Use StreamData for property-based tests
+- Test Factories: Use ExMachina for test data creation
+- Test Readability: Write tests that serve as documentation
+- Arrange-Act-Assert: Structure tests with clear setup, action, and verification phases
+- Use Ecto's sandbox for DB tests.
+- Mock timestamps or other sources of non-determinism.
+- Use ExCoveralls to track test coverage. Generated code must not reduce test coverage percentage.
+- After generating or editing Elixir code, always run `mix format` to format it.
+- After generating or editing code, always run tests to ensure they are passing. If warnings are emitted while running tests, fix those related to the changes you introduced.
+
+## HTTP and API Integration
+
+- Tesla for HTTP Clients: Use Tesla, and Mox for mocking Tesla and testing client behavior.
+- Behaviours for API Clients: Define behaviours for API clients to allow easy mocking
+- Error Handling: Handle network failures and unexpected responses gracefully
+- Timeouts: Always set appropriate timeouts for external calls
+- Circuit Breakers: Use circuit breakers for critical external services
+
+## Naming Conventions
+
+- Snake Case: For variables and functions ('create_user')
+- Verb-First Functions: Start function names with verbs ('create_user', not 'user_create')
+- Plural for Collections: Use plural for collections ('users', not 'user')
+- Consistent Terminology: Use consistent terms throughout the codebase
+- Intention-Revealing Names: Choose names that reveal intent, not implementation
+
+## Documentation and Quality
+
+- Document Public Functions: Add '@doc' to all public functions
+- Examples in Docs: Include examples in documentation
+- Credo and Dialyzer: Use for static analysis and type checking. If `credo` is in the project dependencies, always run `mix credo` after generating or editing Elixir code, and fix reported errors if any.
+- Consistent Formatting: Use 'mix format' to maintain consistent code style
+- Continuous Refactoring: Regularly improve code structure without changing behavior
+- Comments: Write comments only when necessary. Describe why, not what it does.
+
+## Performance Considerations
+
+- Avoid N+1 Queries: Use Ecto's preloading and joins
+- Pagination: Paginate large result sets. Use Relay pagination when working with Ash and unbounded result sets.
+- Background Jobs: Use Oban for background processing, use Broadway for data processing pipelines. 
+- Measure First: Profile before optimizing.
+- Caching: Apply strategic caching where appropriate
+- For distributed apps, prefer Horde/libcluster idioms for resiliency. Ensure they do not create noisy logs or race conditions in clustered environments.
+
+## Verifying Work
+
+- When debugging data from a Postgres database, use `psql edgehog_dev -c "<your query>"` to connect to the database and then run the query. There is also the edgehog_test database for testing.
+- If the Mix task is available, use the `mix check` command after generating code to check for errors and code quality. If you encounter format errors, use `mix format` to fix them.

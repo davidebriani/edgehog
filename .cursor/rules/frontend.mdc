@@ -1,0 +1,34 @@
+---
+description: Rules for working with frontend code
+globs: 
+alwaysApply: true
+---
+
+## Language/Framework Conventions
+- Prefer functional components with hooks.
+- Use TypeScript types rigorously, with `yup` for validation if applicable.
+- Use `React Query` for server-state and `React Context` only for global static config.
+
+## Component Design
+- Use Mantine and Bootstrap components where applicable; do not roll your own styling unless extending.
+- Use Mantine for new components if the project is already using Mantine. Use Bootstrap otherwise. Don't mix Bootstrap with Mantine in new components.
+- Avoid prop drilling; suggest `useContext` or composition.
+- For tables or charts, use `Tanstack` and `ApexCharts` idioms respectively.
+- All new components should be typed strictly with TypeScript. Avoid using `any` unless explicitly required and documented.
+- Prefer lazy-loading charts/components with React.lazy + Suspense.
+
+## Relay/GraphQL
+- Use Relay for GraphQL.
+- Always use fragments and colocate them with components.
+- Respect Relay’s pagination and connection specs.
+- Avoid direct queries unless colocation is not viable.
+
+## Testing
+- Use `Vitest` for unit, `Cypress` for E2E.
+- Do not suggest `Jest` or older patterns.
+- Favor data-testid selectors over brittle CSS selectors.
+- When editing components with forms or inputs, include `React Hook Form` validations and test cases.
+
+## Performance
+- Suggest memoization (`useMemo`, `useCallback`) only for expensive computations or stable references.
+- Defer rendering on large lists or charts; consider virtualization where needed.
