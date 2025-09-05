@@ -271,6 +271,13 @@ defmodule Edgehog.DeploymentCampaigns.DeploymentMechanism.Lazy.Executor do
   def handle_event(:internal, {:already_deployed, target}, :deployment, data) do
     # The target already has the same version as the target release, we consider this
     # a success.
+    # TODO: this means there's a Deployment resource, but it doesn't mean that the
+    # actual deployment to the device was a success. We should query Astarte to verify this.
+    # Actually, we could handle a :resume_deployment event that syncs the backend state
+    # with Astarte, verify what needs to be resent, and then handle control to the :deployed event.
+    # Actually, this could similar to the :retry_target case, except for the initial sync of
+    # backend resources with Astarte. We should also subscribe to deployment updates, like in the
+    # :deployed event, so we can track the deployment progress.
     Logger.info("Device #{target.device_id} was already updated.")
     _ = Core.mark_target_as_successful!(target)
 
@@ -431,6 +438,8 @@ defmodule Edgehog.DeploymentCampaigns.DeploymentMechanism.Lazy.Executor do
     # We always cancel the retry timeout for every kind of update we see on an Deployment.
     # This ensures we don't resend the request even if we accidentally miss the acknowledge.
     # If the timeout does not exist, this is a no-op anyway.
+    # TODO: if we just cancel the timeout, don't we risk ignoring a deployment that might progress further?
+    # Maybe we could reset the timeout instead (in the :not_ready case)?
     actions = [cancel_retry_timeout(data.tenant_id, deployment.id) | additional_actions]
 
     {:keep_state_and_data, actions}
@@ -474,6 +483,7 @@ defmodule Edgehog.DeploymentCampaigns.DeploymentMechanism.Lazy.Executor do
   end
 
   def handle_event(:internal, :deployment_completion, state, data) do
+    # TODO: maybe we should cancel the PubSub subscription to the Deployment updates here
     cond do
       state == :wait_for_available_slot ->
         # If we were waiting for a free slot, we fetch the next target
@@ -514,6 +524,8 @@ defmodule Edgehog.DeploymentCampaigns.DeploymentMechanism.Lazy.Executor do
       :ok ->
         # Setup a timeout for the Deployment retry
         action = setup_retry_timeout(data.tenant_id, target, data.deployment_mechanism)
+
+        # TODO: should we also produce internal_event(:fetch_next_target) like in the :deployed event?
 
         {:keep_state_and_data, action}
 
