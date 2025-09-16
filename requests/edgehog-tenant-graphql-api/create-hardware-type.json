@@ -1,0 +1,33 @@
+{
+  "info": {
+    "name": "Request to create a hardware type in Edgehog",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create Hardware Type",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\": \"mutation CreateHardwareType($input: CreateHardwareTypeInput!) { createHardwareType(input: $input) { result { id handle name partNumbers { partNumber } } } }\", \"variables\": { \"input\": { \"handle\": \"hw-1\", \"name\": \"HW 1\", \"partNumbers\": \"hw-1\" } }\n}"
+        },
+        "url": "{{edgehog_tenant_api_url}}"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "edgehog_tenant_api_url",
+      "value": "http://api.edgehog.localhost/tenants/test/api"
+    },
+    {
+      "key": "auth_token",
+      "value": ""
+    }
+  ]
+}

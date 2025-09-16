@@ -103,27 +103,7 @@ _init-edgehog:
 [private]
 _create-edgehog-tenant:
     #!/usr/bin/env bash
-    admin_jwt=$(cat backend/priv/repo/seeds/keys/admin_jwt.txt)
-    curl -sf -X POST "http://api.edgehog.localhost/admin-api/v1/tenants" \
-         -H "Content-Type: application/vnd.api+json" \
-         -H "Accept: application/vnd.api+json" \
-         -H "Authorization: Bearer $admin_jwt" \
-         -d '{
-           "data": {
-             "type": "tenant",
-             "attributes": {
-               "name": "Test",
-               "slug": "test", 
-               "default_locale": "en-US",
-               "public_key": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEhV0KI4hByk0uDkCg4yZImMTiAtz2\nazmpbh0sLAKOESdlRYOFw90Up4F9fRRV5Li6Pn5XZiMCZhVkS/PoUbIKpA==\n-----END PUBLIC KEY-----",
-               "astarte_config": {
-                 "base_api_url": "http://api.astarte.localhost",
-                 "realm_name": "test",
-                 "realm_private_key": "-----BEGIN EC PRIVATE KEY-----\nMHcCAQEEIKsJwOKgTwhzWG3tnldd71K4hef5EfjvcNroSqQDY1+5oAoGCCqGSM49\nAwEHoUQDQgAEAdBOfYfLD2ukDqgSIQyzRsLc1xEa8/ujpZFaU1/s9F/cKmvJmnOJ\nBDfpPin7DXqOng+2JsinHuhLEdP/i0InLw==\n-----END EC PRIVATE KEY-----"
-               }
-             }
-           }
-         }'
+    just run-admin-api-request requests/edgehog-admin-rest-api/create-tenant.json
 
 # Provision a new Edgehog tenant with Astarte backend
 provision-tenant: _check-system-prereqs _check-astarte-prereqs _configure-system _init-astarte _wait-astarte _create-astarte-realm _init-edgehog _wait-edgehog _create-edgehog-tenant
@@ -236,19 +216,40 @@ logs-astarte:
     @echo "📋 Showing Astarte service logs..."
     @if [ -d astarte ]; then (cd astarte && docker compose logs --tail=50 -f); else echo "❌ Astarte not initialized"; fi
 
+# Run a request for the Edgehog Admin REST API
+run-admin-api-request request_file:
+    #!/usr/bin/env bash
+    AUTH_TOKEN=$(cat backend/priv/repo/seeds/keys/admin_jwt.txt)
+    just _run-request {{request_file}} $AUTH_TOKEN
+
+# Run a request for the Edgehog GraphQL Tenant API
+run-tenant-api-request request_file:
+    #!/usr/bin/env bash
+    AUTH_TOKEN=$(cat backend/priv/repo/seeds/keys/tenant_jwt.txt)
+    just _run-request {{request_file}} $AUTH_TOKEN
+
+# Utility recipe to run a Postman request with Newman
+[private]
+_run-request request_file auth_token:
+    #!/usr/bin/env bash
+    echo "🔄 Running request: {{request_file}}"
+    docker run --rm --network=host -v "$(pwd)/requests:/requests:ro" postman/newman:6-alpine run /{{request_file}} --env-var "auth_token={{auth_token}}"
+
 # Show available recipes with descriptions
 help:
     @echo "🚀 Edgehog Development Tasks"
     @echo ""
     @echo "Main commands:"
-    @echo "  provision-tenant    Set up Edgehog with Astarte backend"
-    @echo "  connect-device      Connect a simulated device to Edgehog"
-    @echo "  deprovision-tenant  Tear down Edgehog and Astarte services"
+    @echo "  provision-tenant        Set up Edgehog with Astarte backend"
+    @echo "  connect-device          Connect a simulated device to Edgehog"
+    @echo "  deprovision-tenant      Tear down Edgehog and Astarte services"
     @echo ""
     @echo "Utility commands:"
-    @echo "  status              Show the status of running services"
-    @echo "  logs                Show logs for all Edgehog services"
-    @echo "  logs-astarte        Show logs for Astarte services"
-    @echo "  open-dashboards     Open web interfaces in browser"
+    @echo "  status                  Show the status of running services"
+    @echo "  logs                    Show logs for all Edgehog services"
+    @echo "  logs-astarte            Show logs for Astarte services"
+    @echo "  open-dashboards         Open web interfaces in browser"
+    @echo "  run-admin-api-request   Run request file for Edgehog Admin API"
+    @echo "  run-tenant-api-request  Run request file for Edgehog Tenant API"
     @echo ""
     @echo "Use 'just <command>' to run a specific task"

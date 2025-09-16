@@ -1,0 +1,62 @@
+{
+  "info": {
+    "name": "Request to create a tenant in Edgehog",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create Tenant",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/vnd.api+json" },
+          { "key": "Accept", "value": "application/vnd.api+json" },
+          { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"data\": {\n    \"type\": \"tenant\",\n    \"attributes\": {\n      \"name\": \"{{tenant_name}}\",\n      \"slug\": \"{{tenant_slug}}\",\n      \"default_locale\": \"{{tenant_default_locale}}\",\n      \"public_key\": \"{{tenant_public_key}}\",\n      \"astarte_config\": {\n        \"base_api_url\": \"{{astarte_api_url}}\",\n        \"realm_name\": \"{{astarte_realm_name}}\",\n        \"realm_private_key\": \"{{astarte_realm_private_key}}\"\n      }\n    }\n  }\n}"
+        },
+        "url": "{{edgehog_admin_api_url}}/tenants"
+      }
+    }
+  ],
+  "variable": [
+    {
+        "key": "edgehog_admin_api_url",
+        "value": "http://api.edgehog.localhost/admin-api/v1"
+    },
+    {
+        "key": "auth_token",
+        "value": ""
+    },
+    {
+        "key": "tenant_name",
+        "value": "Test"
+    },
+    {
+        "key": "tenant_slug",
+        "value": "test"
+    },
+    {
+        "key": "tenant_default_locale",
+        "value": "en-US"
+    },
+    {
+        "key": "tenant_public_key",
+        "value": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEhV0KI4hByk0uDkCg4yZImMTiAtz2\nazmpbh0sLAKOESdlRYOFw90Up4F9fRRV5Li6Pn5XZiMCZhVkS/PoUbIKpA==\n-----END PUBLIC KEY-----"
+    },
+    {
+        "key": "astarte_api_url",
+        "value": "http://api.astarte.localhost"
+    },
+    {
+        "key": "astarte_realm_name",
+        "value": "test"
+    },
+    {
+      "key": "astarte_realm_private_key",
+      "value": "-----BEGIN EC PRIVATE KEY-----\nMHcCAQEEIKsJwOKgTwhzWG3tnldd71K4hef5EfjvcNroSqQDY1+5oAoGCCqGSM49\nAwEHoUQDQgAEAdBOfYfLD2ukDqgSIQyzRsLc1xEa8/ujpZFaU1/s9F/cKmvJmnOJ\nBDfpPin7DXqOng+2JsinHuhLEdP/i0InLw==\n-----END EC PRIVATE KEY-----"
+    }
+  ]
+}
