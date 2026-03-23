@@ -24,6 +24,7 @@ defmodule Edgehog.Devices.Reconciler do
 
   alias Edgehog.Devices.Reconciler
   alias Edgehog.Tenants.Tenant
+  alias OpentelemetryProcessPropagator.Task.Supervisor, as: OTelTaskSupervisor
 
   require Logger
 
@@ -80,7 +81,7 @@ defmodule Edgehog.Devices.Reconciler do
   end
 
   defp spawn_reconciliation_task(tenant) do
-    Task.Supervisor.async(Reconciler.Supervisor, fn ->
+    OTelTaskSupervisor.async(Reconciler.Supervisor, fn ->
       Logger.info("Reconciling tenant #{tenant.slug}")
       Reconciler.Core.reconcile(tenant)
     end)

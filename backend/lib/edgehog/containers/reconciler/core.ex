@@ -25,6 +25,7 @@ defmodule Edgehog.Containers.Reconciler.Core do
 
   alias Edgehog.Containers
   alias Edgehog.Devices
+  alias OpentelemetryProcessPropagator.Task, as: OTelTask
 
   require Ash.Query
   require Logger
@@ -34,11 +35,11 @@ defmodule Edgehog.Containers.Reconciler.Core do
   def reconcile(%{device_id: device_id, tenant: tenant}) do
     # We start each reconciliation in its own task not to disrupt others
     with {:ok, device} <- Devices.fetch_device(device_id, tenant: tenant, not_found_error?: true) do
-      Task.start(fn -> reconcile_images(device, tenant) end)
-      Task.start(fn -> reconcile_volumes(device, tenant) end)
-      Task.start(fn -> reconcile_networks(device, tenant) end)
-      Task.start(fn -> reconcile_containers(device, tenant) end)
-      Task.start(fn -> reconcile_deployments(device, tenant) end)
+      OTelTask.start(fn -> reconcile_images(device, tenant) end)
+      OTelTask.start(fn -> reconcile_volumes(device, tenant) end)
+      OTelTask.start(fn -> reconcile_networks(device, tenant) end)
+      OTelTask.start(fn -> reconcile_containers(device, tenant) end)
+      OTelTask.start(fn -> reconcile_deployments(device, tenant) end)
 
       :ok
     end

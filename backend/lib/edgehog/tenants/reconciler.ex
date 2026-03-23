@@ -25,6 +25,8 @@ defmodule Edgehog.Tenants.Reconciler do
   alias Edgehog.Tenants.Reconciler.Core
   alias Edgehog.Tenants.Reconciler.TaskSupervisor
   alias Edgehog.Tenants.Tenant
+  alias OpentelemetryProcessPropagator.Task, as: OTelTask
+  alias OpentelemetryProcessPropagator.Task.Supervisor, as: OTelTaskSupervisor
 
   require Logger
 
@@ -88,7 +90,7 @@ defmodule Edgehog.Tenants.Reconciler do
   defp start_reconciliation_task(%Tenant{} = tenant, tenant_to_trigger_url_fun) do
     tenant = Ash.load!(tenant, [realm: [:realm_management_client]], tenant: tenant)
 
-    Task.Supervisor.start_child(TaskSupervisor, fn ->
+    OTelTaskSupervisor.start_child(TaskSupervisor, fn ->
       rm_client = tenant.realm.realm_management_client
 
       Enum.each(Core.list_required_interfaces(), &Core.reconcile_interface!(rm_client, &1))
@@ -130,7 +132,7 @@ defmodule Edgehog.Tenants.Reconciler do
   end
 
   defp reconcile_trigger!(rm_client, trigger, astarte_version, tenant) do
-    Task.start(fn -> Core.reconcile_trigger!(rm_client, trigger, astarte_version, tenant) end)
+    OTelTask.start(fn -> Core.reconcile_trigger!(rm_client, trigger, astarte_version, tenant) end)
   end
 
   defp schedule_reconciliation(time) do
