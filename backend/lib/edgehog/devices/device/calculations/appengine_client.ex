@@ -1,7 +1,7 @@
 #
 # This file is part of Edgehog.
 #
-# Copyright 2024 SECO Mind Srl
+# Copyright 2024-2026 SECO Mind Srl
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -44,7 +44,12 @@ defmodule Edgehog.Devices.Device.Calculations.AppEngineClient do
       } = device
 
       # TODO: scope client claims to the device
-      case AppEngine.new(base_api_url, realm_name, private_key: private_key) do
+      case AppEngine.new(base_api_url, realm_name,
+             private_key: private_key,
+             extra_middleware: [
+               {Tesla.Middleware.OpenTelemetry, span_name: fn env -> Tesla.build_url(env.url, env.query) end}
+             ]
+           ) do
         {:ok, client} -> client
         _error -> nil
       end

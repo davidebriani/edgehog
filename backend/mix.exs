@@ -142,7 +142,8 @@ defmodule Edgehog.MixProject do
       {:opentelemetry_exporter, "~> 1.10"},
       {:opentelemetry_phoenix, "~> 2.0"},
       {:opentelemetry_ash, "~> 0.1"},
-      {:opentelemetry_absinthe, "~> 2.4"}
+      {:opentelemetry_absinthe, "~> 2.4"},
+      {:opentelemetry_tesla, "~> 2.4"}
     ]
   end
 
