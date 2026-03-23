@@ -61,6 +61,9 @@ resource_section_order = [
 config :ash, :custom_types, id: Edgehog.Types.Id
 config :ash, :default_belongs_to_type, :integer
 
+config :ash,
+  tracer: [Edgehog.Tracer]
+
 # Configures the mailer
 #
 # By default it uses the "Local" adapter which stores the emails
@@ -133,6 +136,9 @@ config :mime, :extensions, %{
 config :mime, :types, %{
   "application/vnd.api+json" => ["json"]
 }
+
+config :opentelemetry_ash,
+  trace_types: [:custom, :action, :flow]
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason

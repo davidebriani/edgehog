@@ -1,7 +1,7 @@
 #
 # This file is part of Edgehog.
 #
-# Copyright 2021-2025 SECO Mind Srl
+# Copyright 2021-2026 SECO Mind Srl
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -39,6 +39,9 @@ defmodule Edgehog.Application do
     Logger.info("Starting application version #{@version}.", tag: "edgehog_start")
 
     Config.validate_admin_authentication!()
+
+    :ok = OpentelemetryPhoenix.setup(adapter: :cowboy2)
+    OpentelemetryAbsinthe.setup(trace_request_variables: true, trace_response_errors: true)
 
     # We inject this here so that the non-web part of the application doesn't depend on the web part
     tenant_to_trigger_url_fun = fn %Edgehog.Tenants.Tenant{slug: slug} ->
